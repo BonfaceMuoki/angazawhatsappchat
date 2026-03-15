@@ -1,0 +1,31 @@
+FROM php:8.4-cli
+
+# Install system dependencies + Supervisor
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libzip-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    curl \
+    supervisor \
+ && docker-php-ext-install pdo_mysql mbstring zip exif pcntl \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /var/log/supervisor
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+# Copy application
+COPY . /var/www/html
+
+# Install PHP dependencies
+RUN if [ -f "composer.json" ]; then composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev; fi
+
+# Supervisor config
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

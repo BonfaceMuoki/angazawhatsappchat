@@ -7,6 +7,30 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Docker
+
+The app runs in Docker. From the project root:
+
+```bash
+docker compose up -d
+```
+
+**User Management API (migrations & seed):** run inside the app container:
+
+```bash
+# Run migrations (users, roles, permissions, passwords, otp_codes, etc.)
+docker compose exec app php artisan migrate --force
+
+# Seed super admin (admin@example.com / Admin123!) and default roles/permissions
+docker compose exec app php artisan db:seed --class=SuperAdminSeeder
+```
+
+The `queue` service runs Supervisor, which starts the Laravel queue worker automatically when the container starts (and restarts it if it crashes). No extra step needed.
+
+**API base URL:** `http://localhost:8000` (or your ngrok URL). Auth endpoints: `POST /api/auth/login`, `POST /api/auth/verify-otp`, etc. Admin: `GET/POST /api/admin/users`, etc., with `Authorization: Bearer <token>`.
+
+---
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

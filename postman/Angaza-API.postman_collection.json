@@ -1,0 +1,324 @@
+{
+  "info": {
+    "name": "Angaza API",
+    "description": "Auth, Admin (User Management), WhatsApp conversations, Push subscriptions",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "phone", "value": "254740857767" },
+    { "key": "user_id", "value": "1" },
+    { "key": "role_id", "value": "1" },
+    { "key": "permission_id", "value": "1" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin123!\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/login",
+            "description": "Returns message that OTP was sent. Check email (or logs if MAIL_MAILER=log) for code."
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"code\": \"123456\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/verify-otp",
+            "description": "Returns token and user. Copy token into collection variable 'token' for Admin requests."
+          }
+        },
+        {
+          "name": "Request password reset",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/request-password-reset"
+          }
+        },
+        {
+          "name": "Reset password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"RESET_TOKEN_FROM_EMAIL\",\n  \"password\": \"NewPassword123!\",\n  \"password_confirmation\": \"NewPassword123!\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/reset-password"
+          }
+        },
+        {
+          "name": "Verify email",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"VERIFICATION_TOKEN_FROM_EMAIL\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/verify-email"
+          }
+        },
+        {
+          "name": "Accept invite",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"INVITATION_TOKEN_FROM_EMAIL\",\n  \"name\": \"New User\",\n  \"password\": \"Password123!\",\n  \"password_confirmation\": \"Password123!\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/accept-invite"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Users",
+      "item": [
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/admin/users?per_page=15"
+          }
+        },
+        {
+          "name": "Create user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"Password123!\",\n  \"password_confirmation\": \"Password123!\",\n  \"role_ids\": [1]\n}"
+            },
+            "url": "{{base_url}}/api/admin/users"
+          }
+        },
+        {
+          "name": "Invite user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"invited@example.com\",\n  \"role_id\": 1\n}"
+            },
+            "url": "{{base_url}}/api/admin/users/invite"
+          }
+        },
+        {
+          "name": "Assign roles to user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role_ids\": [1, 2]\n}"
+            },
+            "url": "{{base_url}}/api/admin/users/{{user_id}}/roles"
+          }
+        },
+        {
+          "name": "Assign permissions to user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permission_ids\": [1, 2, 3]\n}"
+            },
+            "url": "{{base_url}}/api/admin/users/{{user_id}}/permissions"
+          }
+        },
+        {
+          "name": "Block user",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/admin/users/{{user_id}}/block"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Roles",
+      "item": [
+        {
+          "name": "List roles",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/admin/roles?per_page=15"
+          }
+        },
+        {
+          "name": "Create role",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role_name\": \"editor\",\n  \"description\": \"Content editor\",\n  \"is_superadmin\": false\n}"
+            },
+            "url": "{{base_url}}/api/admin/roles"
+          }
+        },
+        {
+          "name": "Assign permissions to role",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permission_ids\": [1, 2, 3]\n}"
+            },
+            "url": "{{base_url}}/api/admin/roles/{{role_id}}/permissions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Permissions",
+      "item": [
+        {
+          "name": "List permissions",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/admin/permissions?per_page=15"
+          }
+        },
+        {
+          "name": "Create permission",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permission_name\": \"reports.view\",\n  \"description\": \"View reports\",\n  \"is_admin_permission\": true\n}"
+            },
+            "url": "{{base_url}}/api/admin/permissions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Conversations (WhatsApp)",
+      "item": [
+        {
+          "name": "List conversations",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/conversations"
+          }
+        },
+        {
+          "name": "Get messages",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/conversations/{{phone}}/messages"
+          }
+        },
+        {
+          "name": "Send message",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Hello from Postman\"\n}"
+            },
+            "url": "{{base_url}}/api/conversations/{{phone}}/messages"
+          }
+        },
+        {
+          "name": "Mark conversation read",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/conversations/{{phone}}/read"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Push",
+      "item": [
+        {
+          "name": "Get VAPID public key",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{base_url}}/api/push-vapid-public"
+          }
+        },
+        {
+          "name": "Subscribe to push",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"endpoint\": \"https://fcm.googleapis.com/...\",\n  \"keys\": { \"p256dh\": \"...\", \"auth\": \"...\" }\n}"
+            },
+            "url": "{{base_url}}/api/push-subscriptions"
+          }
+        },
+        {
+          "name": "Unsubscribe from push",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/api/push-subscriptions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Misc",
+      "item": [
+        {
+          "name": "API root",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{base_url}}/api"
+          }
+        },
+        {
+          "name": "Webhook verify (WhatsApp)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": "{{base_url}}/api/webhook/whatsapp?hub.mode=subscribe&hub.verify_token=YOUR_VERIFY_TOKEN&hub.challenge=CHALLENGE"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -7,10 +7,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Angaza Center brand (https://www.angazacenter.org/)
+        // Angaza Center brand (angazacenter.org) — dark teal + light turquoise
         angaza: {
-          dark: '#0e5c5c',    // dark teal/blue-green (header, footer, primary)
-          accent: '#14b8a6',  // bright teal-green (CTAs, links)
+          dark: '#004d40',    // dark teal (top bar, buttons, primary)
+          accent: '#32afa9',  // light teal/turquoise (logo, links, highlights)
         },
       },
     },

@@ -42,6 +42,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'api' => [
+            'driver' => 'jwt',
+            'provider' => 'users',
+        ],
     ],
 
     /*
@@ -113,5 +117,12 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+
+    /*
+    |--------------------------------------------------------------------------
+    | JWT Secret (for API token signing)
+    |--------------------------------------------------------------------------
+    */
+    'jwt_secret' => env('JWT_SECRET', env('APP_KEY')),
 
 ];

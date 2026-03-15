@@ -30,7 +30,7 @@ services:
   queue:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile.queue
     container_name: laravel-queue
     working_dir: /var/www/html
     volumes:
@@ -49,7 +49,7 @@ services:
       DB_DATABASE: laravel
       DB_USERNAME: laravel
       DB_PASSWORD: secret
-    command: php artisan queue:work --tries=3 --timeout=90
+      MAIL_MAILER: smtp
     depends_on:
       - mysql
       - app

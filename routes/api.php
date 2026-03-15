@@ -1,7 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AdminPermissionController;
+use App\Http\Controllers\Api\Admin\AdminRoleController;
+use App\Http\Controllers\Api\Admin\AdminUserController;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\ConversationController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Api\PushSubscriptionController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WhatsAppWebhookController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Route;
@@ -9,6 +16,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/webhook/whatsapp', [WhatsAppWebhookController::class, 'verify']);
 Route::post('/webhook/whatsapp', [WhatsAppWebhookController::class, 'handle']);
 
+Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+Route::get('/leads', [LeadController::class, 'index']);
+Route::get('/analytics/overview', [AnalyticsController::class, 'overview']);
 Route::get('/conversations', [ConversationController::class, 'index']);
 Route::post('/conversations/{phone}/read', [ConversationController::class, 'markRead']);
 Route::get('/conversations/{phone}/messages', [ConversationController::class, 'messages']);
@@ -17,6 +27,33 @@ Route::post('/conversations/{phone}/messages', [ConversationController::class, '
 Route::get('/push-vapid-public', [PushSubscriptionController::class, 'vapidPublic']);
 Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store']);
 Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'destroy']);
+
+// Auth (public)
+Route::prefix('auth')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::post('/request-password-reset', [AuthController::class, 'requestPasswordReset']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+    Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+    Route::post('/accept-invite', [AuthController::class, 'acceptInvite']);
+});
+
+// Admin (JWT required)
+Route::prefix('admin')->middleware(['auth:api'])->group(function () {
+    Route::get('/users', [AdminUserController::class, 'index']);
+    Route::post('/users', [AdminUserController::class, 'store']);
+    Route::post('/users/invite', [AdminUserController::class, 'invite']);
+    Route::post('/users/{id}/roles', [AdminUserController::class, 'assignRoles']);
+    Route::post('/users/{id}/permissions', [AdminUserController::class, 'assignPermissions']);
+    Route::post('/users/{id}/block', [AdminUserController::class, 'block']);
+
+    Route::get('/roles', [AdminRoleController::class, 'index']);
+    Route::post('/roles', [AdminRoleController::class, 'store']);
+    Route::post('/roles/{id}/permissions', [AdminRoleController::class, 'assignPermissions']);
+
+    Route::get('/permissions', [AdminPermissionController::class, 'index']);
+    Route::post('/permissions', [AdminPermissionController::class, 'store']);
+});
 
 Route::get('/', function (): JsonResponse {
     return response()->json([

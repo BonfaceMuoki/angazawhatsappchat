@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { getStoredToken } from '../api'
+import { getStoredToken, hasStoredBotPermission } from '../api'
 import LoginView from '../views/LoginView.vue'
 
 const routes = [
@@ -67,6 +67,18 @@ const routes = [
     component: () => import('../views/Admin/AdminPermissionsView.vue'),
     meta: { title: 'Permissions', auth: true },
   },
+  {
+    path: '/admin/chatbot/flows',
+    name: 'admin-chatbot-flows',
+    component: () => import('../views/Admin/BotFlowsView.vue'),
+    meta: { title: 'Chatbot Flows', auth: true, botPermission: true },
+  },
+  {
+    path: '/admin/chatbot/flows/:id',
+    name: 'admin-chatbot-flow-builder',
+    component: () => import('../views/Admin/BotFlowBuilderView.vue'),
+    meta: { title: 'Flow Builder', auth: true, botPermission: true },
+  },
 ]
 
 const router = createRouter({
@@ -84,6 +96,9 @@ router.beforeEach((to) => {
   if (path === '/login' && token) {
     const redirect = to.query.redirect
     return { path: typeof redirect === 'string' && redirect.startsWith('/') ? redirect : '/' }
+  }
+  if (to.meta.botPermission && !hasStoredBotPermission()) {
+    return { path: '/admin' }
   }
 })
 

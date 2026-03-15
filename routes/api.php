@@ -3,6 +3,10 @@
 use App\Http\Controllers\Api\Admin\AdminPermissionController;
 use App\Http\Controllers\Api\Admin\AdminRoleController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
+use App\Http\Controllers\Api\Admin\BotEdgeController;
+use App\Http\Controllers\Api\Admin\BotFlowController;
+use App\Http\Controllers\Api\Admin\BotNodeController;
+use App\Http\Controllers\Api\Admin\BotSettingController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\DashboardController;
@@ -23,6 +27,7 @@ Route::get('/conversations', [ConversationController::class, 'index']);
 Route::post('/conversations/{phone}/read', [ConversationController::class, 'markRead']);
 Route::get('/conversations/{phone}/messages', [ConversationController::class, 'messages']);
 Route::post('/conversations/{phone}/messages', [ConversationController::class, 'sendMessage']);
+Route::post('/conversations/{phone}/clear-messages', [ConversationController::class, 'clearMessages']);
 
 Route::get('/push-vapid-public', [PushSubscriptionController::class, 'vapidPublic']);
 Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store']);
@@ -53,6 +58,27 @@ Route::prefix('admin')->middleware(['auth:api'])->group(function () {
 
     Route::get('/permissions', [AdminPermissionController::class, 'index']);
     Route::post('/permissions', [AdminPermissionController::class, 'store']);
+
+    Route::middleware(['permission:bot.manage,bot.flows,bot.nodes,bot.edges,bot.settings'])->group(function () {
+        Route::get('/bot/flows', [BotFlowController::class, 'index']);
+        Route::get('/bot/flows/{id}', [BotFlowController::class, 'show']);
+        Route::post('/bot/flows', [BotFlowController::class, 'store']);
+        Route::put('/bot/flows/{id}', [BotFlowController::class, 'update']);
+        Route::delete('/bot/flows/{id}', [BotFlowController::class, 'destroy']);
+
+        Route::get('/bot/nodes', [BotNodeController::class, 'index']);
+        Route::post('/bot/nodes', [BotNodeController::class, 'store']);
+        Route::put('/bot/nodes/{id}', [BotNodeController::class, 'update']);
+        Route::delete('/bot/nodes/{id}', [BotNodeController::class, 'destroy']);
+
+        Route::get('/bot/edges', [BotEdgeController::class, 'index']);
+        Route::post('/bot/edges', [BotEdgeController::class, 'store']);
+        Route::put('/bot/edges/{id}', [BotEdgeController::class, 'update']);
+        Route::delete('/bot/edges/{id}', [BotEdgeController::class, 'destroy']);
+
+        Route::get('/bot/settings', [BotSettingController::class, 'index']);
+        Route::put('/bot/settings', [BotSettingController::class, 'update']);
+    });
 });
 
 Route::get('/', function (): JsonResponse {

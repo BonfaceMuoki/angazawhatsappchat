@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\WhatsAppBotService;
+use App\Services\BotEngineService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class WhatsAppWebhookController extends Controller
 {
     public function __construct(
-        private WhatsAppBotService $botService
+        private BotEngineService $botService
     ) {}
 
     /**

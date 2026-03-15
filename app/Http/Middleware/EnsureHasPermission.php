@@ -22,6 +22,12 @@ class EnsureHasPermission
             return $next($request);
         }
 
+        $list = [];
+        foreach ($permissions as $p) {
+            $list = array_merge($list, array_map('trim', explode(',', $p)));
+        }
+        $permissions = array_filter($list);
+
         foreach ($permissions as $permission) {
             if ($this->permissionService->userHasPermission($user->id, $permission)) {
                 return $next($request);

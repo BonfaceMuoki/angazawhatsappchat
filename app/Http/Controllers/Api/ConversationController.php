@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\BotEdge;
+use App\Models\BotFlow;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Services\WhatsAppMessageService;
@@ -61,20 +63,51 @@ class ConversationController extends Controller
 
     /**
      * List messages for a conversation (paginated).
+     * Adds display_body with friendly label when body is an option_value or flow choice.
      */
     public function messages(string $phone): JsonResponse
     {
-        $messages = Message::where('phone', $phone)
-            ->orderBy('created_at')
-            ->get()
-            ->map(fn (Message $m) => [
+        $messages = Message::where('phone', $phone)->orderBy('created_at')->get();
+        $valueToLabel = $this->getOptionValueToLabelMap($phone);
+
+        $data = $messages->map(function (Message $m) use ($valueToLabel) {
+            $body = $m->body ?? '';
+            $normalized = strtolower(trim($body));
+            $displayBody = $valueToLabel[$normalized] ?? $valueToLabel[$body] ?? null;
+            return [
                 'id' => $m->id,
                 'direction' => $m->direction,
-                'body' => $m->body,
+                'body' => $body,
+                'display_body' => $displayBody ?? $body,
                 'created_at' => $m->created_at->toIso8601String(),
-            ]);
+            ];
+        });
 
-        return response()->json(['data' => $messages]);
+        return response()->json(['data' => $data]);
+    }
+
+    /**
+     * Build map of option_value (and flow_X) -> friendly label for this conversation's flow(s).
+     */
+    private function getOptionValueToLabelMap(string $phone): array
+    {
+        $conversation = Conversation::where('phone', $phone)->first();
+        $map = [];
+
+        if ($conversation?->flow_id) {
+            $edges = BotEdge::whereHas('sourceNode', fn ($q) => $q->where('flow_id', $conversation->flow_id))
+                ->get();
+            foreach ($edges as $e) {
+                $map[strtolower(trim($e->option_value))] = $e->option_label;
+            }
+        }
+
+        $flows = BotFlow::where('is_active', true)->orderBy('display_order')->get();
+        foreach ($flows as $f) {
+            $map['flow_' . $f->id] = $f->name;
+        }
+
+        return $map;
     }
 
     /**
@@ -113,6 +146,17 @@ class ConversationController extends Controller
             'wamid' => $wamid,
         ]);
 
+        // Human takeover: pause bot automation when agent sends a message
+        $conv = Conversation::where('phone', $phone)->first();
+        if ($conv) {
+            $conv->bot_active = false;
+            if ($conv->human_intervened_at === null) {
+                $conv->human_intervened_at = now();
+            }
+            $conv->last_human_message_at = now();
+            $conv->save();
+        }
+
         return response()->json([
             'data' => [
                 'id' => $message->id,
@@ -130,5 +174,28 @@ class ConversationController extends Controller
     {
         Conversation::where('phone', $phone)->update(['last_read_at' => now()]);
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Clear all messages for a conversation and optionally reset bot state.
+     */
+    public function clearMessages(Request $request, string $phone): JsonResponse
+    {
+        $resetSession = $request->boolean('reset_session', true);
+
+        Message::where('phone', $phone)->delete();
+
+        $conversation = Conversation::where('phone', $phone)->first();
+        if ($conversation && $resetSession) {
+            $conversation->update([
+                'flow_id' => null,
+                'current_node_id' => null,
+                'stage' => 'entry',
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Messages cleared.' . ($resetSession ? ' Conversation reset to start.' : ''),
+        ]);
     }
 }

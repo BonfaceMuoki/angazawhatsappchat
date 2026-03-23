@@ -59,9 +59,12 @@
               <label class="block text-sm font-medium text-slate-700">Type</label>
               <select v-model="step.type" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
                 <option value="text">Text only (no choices)</option>
-                <option value="buttons">Buttons (quick replies)</option>
-                <option value="list">List (menu)</option>
+                <option value="buttons">Buttons (max 3 — WhatsApp)</option>
+                <option value="list">List menu (4+ options)</option>
               </select>
+              <p v-if="step.type === 'buttons' && step.options && step.options.length > 3" class="mt-1 text-xs text-amber-700">
+                More than 3 options: switch to &quot;List menu&quot; or the bot will send a list automatically.
+              </p>
             </div>
 
             <template v-if="step.type !== 'text'">
@@ -130,6 +133,10 @@ function removeStep(index) {
 function addOption(step) {
   if (!step.options) step.options = []
   step.options.push({ label: '', value: '', goTo: 'next' })
+  // WhatsApp allows max 3 reply buttons; use list for 4+ options
+  if (step.type === 'buttons' && step.options.length > 3) {
+    step.type = 'list'
+  }
 }
 
 /** Step indices we can jump to (for "Go to Step K") */
@@ -170,6 +177,11 @@ async function createSurvey() {
   saving.value = true
   wizardError.value = ''
   try {
+    for (const step of steps.value) {
+      if (step.type === 'buttons' && step.options && step.options.length > 3) {
+        step.type = 'list'
+      }
+    }
     const flowRes = await props.api.botFlowsCreate({
       name: flowName.value.trim(),
       description: flowDescription.value.trim() || null,

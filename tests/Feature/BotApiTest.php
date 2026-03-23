@@ -91,6 +91,33 @@ class BotApiTest extends TestCase
         $node->assertJsonPath('data.message', 'Hello, choose one:');
     }
 
+    public function test_bot_nodes_auto_generate_node_key_when_omitted(): void
+    {
+        $flow = $this->postJson('/api/admin/bot/flows', [
+            'name' => 'Auto Key Flow',
+            'show_in_router' => false,
+            'display_order' => 0,
+            'is_active' => true,
+        ], [
+            'Authorization' => 'Bearer ' . $this->token,
+        ])->json('data');
+
+        $node = $this->postJson('/api/admin/bot/nodes', [
+            'flow_id' => $flow['id'],
+            'type' => 'text',
+            'message' => 'Auto key message',
+            'is_entry' => true,
+            'is_active' => true,
+        ], [
+            'Authorization' => 'Bearer ' . $this->token,
+        ]);
+        $node->assertStatus(201);
+        $key = $node->json('data.node_key');
+        $this->assertIsString($key);
+        $this->assertStringStartsWith('n_', $key);
+        $this->assertGreaterThan(8, strlen($key));
+    }
+
     public function test_bot_edges_can_create_between_nodes(): void
     {
         $flow = $this->postJson('/api/admin/bot/flows', [

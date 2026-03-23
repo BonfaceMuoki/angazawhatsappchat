@@ -8,6 +8,7 @@ use App\Models\BotFlow;
 use App\Models\BotNode;
 use App\Models\Conversation;
 use App\Models\Message;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 class BotEngineService
@@ -164,16 +165,19 @@ class BotEngineService
         return $this->aiIntent->resolveToOptionValue($text, $edges);
     }
 
+    /**
+     * WhatsApp allows at most 3 reply buttons; list rows are chunked (10 per section).
+     * Node type drives UX: list = always list; buttons = buttons if ≤3 options else list; otherwise edge-count heuristic.
+     */
     private function sendNodeMessage(Conversation $conversation, BotNode $node): void
     {
         $phone = $conversation->phone;
         $edges = $node->outgoingEdges;
 
-        if ($node->type === 'text' || $edges->isEmpty()) {
+        if ($edges->isEmpty()) {
             $response = $this->whatsApp->sendTextMessage($phone, $node->message);
-        } elseif ($edges->count() > 3) {
-            $rows = $edges->map(fn (BotEdge $e) => ['id' => $e->option_value, 'title' => $e->option_label])->all();
-            $sections = [['title' => 'Select an option', 'rows' => $rows]];
+        } elseif ($this->shouldUseListForOptions($node, $edges)) {
+            $sections = $this->edgesToListSections($edges);
             $response = $this->whatsApp->sendListMessage($phone, $node->message, 'View options', $sections);
         } else {
             $buttons = $edges->map(fn (BotEdge $e) => ['option_value' => $e->option_value, 'option_label' => $e->option_label])->all();
@@ -183,6 +187,55 @@ class BotEngineService
         $wamid = $response !== null ? ($response['messages'][0]['id'] ?? null) : null;
         $this->saveMessage($phone, Message::DIRECTION_OUTGOING, $node->message, $wamid, $node->id);
         $conversation->update(['last_bot_message_at' => now()]);
+    }
+
+    private function shouldUseListForOptions(BotNode $node, Collection $edges): bool
+    {
+        $count = $edges->count();
+
+        if ($node->type === 'list') {
+            return true;
+        }
+
+        if ($node->type === 'buttons') {
+            if ($count > 3) {
+                Log::info('BotEngineService: using list (WhatsApp max 3 reply buttons)', [
+                    'node_id' => $node->id,
+                    'node_key' => $node->node_key,
+                    'edge_count' => $count,
+                ]);
+            }
+
+            return $count > 3;
+        }
+
+        // text / legacy: same heuristic as before — list when more than 3 options
+        return $count > 3;
+    }
+
+    /**
+     * WhatsApp list: up to 10 rows per section; multiple sections allowed.
+     *
+     * @param  Collection<int, BotEdge>  $edges
+     * @return array<int, array{title: string, rows: array<int, array{id: string, title: string}>}>
+     */
+    private function edgesToListSections(Collection $edges): array
+    {
+        $rows = $edges->map(fn (BotEdge $e) => [
+            'id' => $e->option_value,
+            'title' => $e->option_label,
+        ])->values()->all();
+
+        $chunks = array_chunk($rows, 10);
+        $sections = [];
+        foreach ($chunks as $index => $chunk) {
+            $sections[] = [
+                'title' => $index === 0 ? 'Select an option' : 'More options',
+                'rows' => $chunk,
+            ];
+        }
+
+        return $sections;
     }
 
     private function sendFallback(string $phone): void

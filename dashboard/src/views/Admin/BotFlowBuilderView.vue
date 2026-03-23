@@ -148,9 +148,31 @@
         <h2 class="text-lg font-semibold text-angaza-dark">{{ editingNode ? 'Edit node' : 'Add node' }}</h2>
         <form class="mt-4 space-y-3" @submit.prevent="editingNode ? updateNode() : createNode()">
           <div>
-            <label class="block text-sm font-medium text-slate-700">Node key (unique in flow)</label>
-            <input v-model="nodeForm.node_key" type="text" required maxlength="100" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono" :readonly="!!editingNode" />
+            <label class="block text-sm font-medium text-slate-700">Node key (optional)</label>
+            <div class="mt-1 flex gap-2">
+              <input
+                v-model="nodeForm.node_key"
+                type="text"
+                maxlength="100"
+                class="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 font-mono"
+                :required="!!editingNode"
+                :readonly="!!editingNode"
+                placeholder="Leave blank — system will assign n_…"
+              />
+              <button
+                v-if="!editingNode"
+                type="button"
+                class="shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                title="Fill with a random unique key"
+                @click="suggestNodeKey"
+              >
+                Suggest
+              </button>
+            </div>
             <p v-if="editingNode" class="mt-1 text-xs text-slate-500">Key cannot be changed when editing.</p>
+            <p v-else class="mt-1 text-xs text-slate-500">
+              Leave empty or click <strong>Suggest</strong> to auto-generate. Or type your own (e.g. <code class="text-xs">entry</code>) — must be unique in this flow. When adding edges, you pick nodes from the list by this key.
+            </p>
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700">Type</label>
@@ -159,7 +181,12 @@
               <option value="buttons">buttons</option>
               <option value="list">list</option>
             </select>
-            <p class="mt-1 text-xs text-slate-500">text = plain message; buttons/list = show options (add edges for each option).</p>
+            <p class="mt-1 text-xs text-slate-500">
+              <strong>text</strong> = plain message only.
+              <strong>buttons</strong> = up to 3 reply buttons (WhatsApp limit); more than 3 outgoing edges are sent as a list automatically.
+              <strong>list</strong> = interactive list menu (use for 4+ options, or anytime you prefer a menu).
+              Add one edge per option.
+            </p>
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700">Message</label>
@@ -319,6 +346,12 @@ const nodeForm = ref({
   is_active: true,
 })
 
+function suggestNodeKey() {
+  const bytes = new Uint8Array(8)
+  crypto.getRandomValues(bytes)
+  nodeForm.value.node_key = 'n_' + Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
 function openNodeModal(node = null) {
   editingNode.value = node
   if (node) {
@@ -345,14 +378,18 @@ async function createNode() {
   nodeFormError.value = ''
   nodeSaving.value = true
   try {
-    await botNodesCreate({
+    const trimmedKey = nodeForm.value.node_key?.trim() ?? ''
+    const payload = {
       flow_id: Number(flowId.value),
-      node_key: nodeForm.value.node_key,
       type: nodeForm.value.type,
       message: nodeForm.value.message,
       is_entry: nodeForm.value.is_entry,
       is_active: nodeForm.value.is_active,
-    })
+    }
+    if (trimmedKey) {
+      payload.node_key = trimmedKey
+    }
+    await botNodesCreate(payload)
     closeNodeModal()
     await load()
   } catch (e) {

@@ -17,8 +17,8 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        $this->call(ConversationFlowSeeder::class);
         $this->call(SuperAdminSeeder::class);
+        $this->call(IadlConciergeFlowSeeder::class);
 
         User::factory()->create([
             'name' => 'Test User',

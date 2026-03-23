@@ -48,6 +48,14 @@ export function getStoredUser() {
   }
 }
 
+const BOT_PERMISSIONS = ['bot.manage', 'bot.flows', 'bot.nodes', 'bot.edges', 'bot.settings']
+
+export function hasStoredBotPermission() {
+  const user = getStoredUser()
+  if (!user || !Array.isArray(user.permissions)) return false
+  return BOT_PERMISSIONS.some((p) => user.permissions.includes(p))
+}
+
 export async function api(path, options = {}) {
   const base = getApiBaseUrl().replace(/\/$/, '')
   const pathNorm = path.startsWith('/') ? path : '/' + path
@@ -61,7 +69,11 @@ export async function api(path, options = {}) {
   if (token) headers['Authorization'] = `Bearer ${token}`
   const res = await fetch(url, { ...options, headers })
   const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.message || res.statusText || 'Request failed')
+  if (!res.ok) {
+    const err = new Error(data.message || res.statusText || 'Request failed')
+    err.status = res.status
+    throw err
+  }
   return data
 }
 
@@ -92,6 +104,13 @@ export function sendMessage(phone, body) {
   return api(`/conversations/${encodeURIComponent(phone)}/messages`, {
     method: 'POST',
     body: JSON.stringify({ body }),
+  })
+}
+
+export function clearConversationMessages(phone, resetSession = true) {
+  return api(`/conversations/${encodeURIComponent(phone)}/clear-messages`, {
+    method: 'POST',
+    body: JSON.stringify({ reset_session: resetSession }),
   })
 }
 
@@ -186,6 +205,69 @@ export function adminRolesAssignPermissions(roleId, permissionIds) {
 export function adminPermissionsList(params = {}) {
   const q = new URLSearchParams(params).toString()
   return api('/admin/permissions' + (q ? '?' + q : ''))
+}
+
+// --- Bot / Chatbot Management (Admin) ---
+export function botFlowsList() {
+  return api('/admin/bot/flows')
+}
+
+export function botFlowGet(id) {
+  return api(`/admin/bot/flows/${id}`)
+}
+
+export function botFlowsCreate(payload) {
+  return api('/admin/bot/flows', { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export function botFlowsUpdate(id, payload) {
+  return api(`/admin/bot/flows/${id}`, { method: 'PUT', body: JSON.stringify(payload) })
+}
+
+export function botFlowsDelete(id) {
+  return api(`/admin/bot/flows/${id}`, { method: 'DELETE' })
+}
+
+export function botNodesList(params = {}) {
+  const q = new URLSearchParams(params).toString()
+  return api('/admin/bot/nodes' + (q ? '?' + q : ''))
+}
+
+export function botNodesCreate(payload) {
+  return api('/admin/bot/nodes', { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export function botNodesUpdate(id, payload) {
+  return api(`/admin/bot/nodes/${id}`, { method: 'PUT', body: JSON.stringify(payload) })
+}
+
+export function botNodesDelete(id) {
+  return api(`/admin/bot/nodes/${id}`, { method: 'DELETE' })
+}
+
+export function botEdgesList(params = {}) {
+  const q = new URLSearchParams(params).toString()
+  return api('/admin/bot/edges' + (q ? '?' + q : ''))
+}
+
+export function botEdgesCreate(payload) {
+  return api('/admin/bot/edges', { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export function botEdgesUpdate(id, payload) {
+  return api(`/admin/bot/edges/${id}`, { method: 'PUT', body: JSON.stringify(payload) })
+}
+
+export function botEdgesDelete(id) {
+  return api(`/admin/bot/edges/${id}`, { method: 'DELETE' })
+}
+
+export function botSettingsGet() {
+  return api('/admin/bot/settings')
+}
+
+export function botSettingsUpdate(payload) {
+  return api('/admin/bot/settings', { method: 'PUT', body: JSON.stringify(payload) })
 }
 
 export function adminPermissionsCreate(payload) {

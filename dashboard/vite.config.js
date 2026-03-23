@@ -1,7 +1,11 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+// Production: VITE_BASE_PATH=/dashboard/ npm run build → assets under /dashboard/
+const base = process.env.VITE_BASE_PATH || '/'
+
 export default defineConfig({
+  base,
   plugins: [vue()],
   server: {
     host: '0.0.0.0',

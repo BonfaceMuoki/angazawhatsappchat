@@ -1,7 +1,12 @@
 <template>
-  <div class="flex h-[calc(100vh-4rem)] min-h-0">
-    <!-- Left: chat list -->
-    <aside class="flex w-full flex-col border-r border-slate-200 bg-white sm:w-80 sm:shrink-0">
+  <div class="flex min-h-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm sm:border-0 sm:shadow-none h-[calc(100vh-7rem)] sm:h-[calc(100vh-8rem)]">
+    <!-- Left: chat list (hidden on mobile when a chat is open) -->
+    <aside
+      :class="[
+        selectedPhone ? 'hidden md:flex' : 'flex',
+        'w-full flex-col border-r border-slate-200 bg-white md:w-80 md:shrink-0',
+      ]"
+    >
       <div class="border-b border-slate-100 p-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <h1 class="text-lg font-bold text-angaza-dark">Chats</h1>
@@ -74,8 +79,13 @@
       </div>
     </aside>
 
-    <!-- Right: active chat or placeholder -->
-    <main class="relative flex min-w-0 flex-1 flex-col bg-slate-50">
+    <!-- Right: active chat or placeholder (hidden on mobile when no chat selected) -->
+    <main
+      :class="[
+        !selectedPhone ? 'hidden md:flex' : 'flex',
+        'relative min-w-0 flex-1 flex-col bg-slate-50',
+      ]"
+    >
       <template v-if="!selectedPhone">
         <div class="flex flex-1 flex-col items-center justify-center p-8 text-center">
           <div class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-200 text-slate-400">
@@ -93,7 +103,7 @@
         <div class="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
           <button
             type="button"
-            class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-angaza-dark lg:hidden"
+            class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-angaza-dark md:hidden touch-manipulation"
             aria-label="Back to list"
             @click="goToChats"
           >
@@ -105,12 +115,20 @@
             <h2 class="truncate font-semibold text-angaza-dark">{{ selectedPhone }}</h2>
             <p class="text-xs text-slate-500">Stage: {{ conversation?.stage ?? '—' }}</p>
           </div>
+          <button
+            type="button"
+            class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+            :disabled="clearing"
+            @click="clearMessages"
+          >
+            {{ clearing ? 'Clearing…' : 'Clear messages' }}
+          </button>
         </div>
 
         <!-- Messages -->
         <div
           ref="messagesEl"
-          class="flex-1 overflow-y-auto p-4"
+          class="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4"
         >
           <div v-if="msgLoading" class="text-center text-slate-500">Loading messages…</div>
           <div v-else-if="msgError" class="text-center text-red-600">{{ msgError }}</div>
@@ -128,7 +146,7 @@
                     : 'bg-white text-angaza-dark shadow-sm border border-slate-200',
                 ]"
               >
-                <p class="whitespace-pre-wrap break-words">{{ msg.body }}</p>
+                <p class="whitespace-pre-wrap break-words">{{ msg.display_body ?? msg.body }}</p>
                 <p
                   :class="['mt-1 text-xs', msg.direction === 'outgoing' ? 'text-white/80' : 'text-slate-400']"
                 >
@@ -189,6 +207,7 @@ import {
   getApiBaseUrl,
   conversationsList,
   conversationMessages,
+  clearConversationMessages,
   sendMessage as apiSendMessage,
   markConversationRead,
 } from '../api'
@@ -216,6 +235,7 @@ const conversation = ref(null)
 const msgLoading = ref(false)
 const msgError = ref('')
 const sending = ref(false)
+const clearing = ref(false)
 const inputBody = ref('')
 const messagesEl = ref(null)
 const newMessageToast = ref(false)
@@ -303,6 +323,22 @@ function formatTime(iso) {
 
 function goToChats() {
   router.push('/chats')
+}
+
+async function clearMessages() {
+  if (!selectedPhone.value || clearing.value) return
+  if (!confirm('Clear all messages for this conversation and reset the bot to the start? This cannot be undone.')) return
+  clearing.value = true
+  try {
+    await clearConversationMessages(selectedPhone.value, true)
+    messages.value = []
+    await fetchConversations()
+    await fetchConversation()
+  } catch (e) {
+    msgError.value = e.message || 'Failed to clear messages'
+  } finally {
+    clearing.value = false
+  }
 }
 
 async function send() {

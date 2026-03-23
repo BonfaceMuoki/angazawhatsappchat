@@ -1,7 +1,7 @@
 <template>
   <aside
-    class="fixed left-0 top-0 z-40 h-screen w-64 border-r border-angaza-dark/20 bg-angaza-dark shadow-lg transition-transform lg:translate-x-0"
-    :class="{ '-translate-x-full': !visible }"
+    class="fixed left-0 top-0 z-40 h-screen w-64 border-r border-angaza-dark/20 bg-angaza-dark shadow-lg transition-transform duration-200 ease-out"
+    :class="visible ? 'translate-x-0' : '-translate-x-full'"
   >
     <div class="flex h-16 items-center gap-2 border-b border-white/10 px-4">
       <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-angaza-accent text-white font-semibold">
@@ -72,7 +72,7 @@ defineProps({
 })
 
 const route = useRoute()
-const { isLoggedIn, logout } = useAuth()
+const { isLoggedIn, logout, hasBotPermission } = useAuth()
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: '📊' },
@@ -82,11 +82,19 @@ const navItems = [
   { path: '/settings', label: 'Settings', icon: '⚙️' },
 ]
 
-const adminNavItems = [
+const adminNavItemsBase = [
   { path: '/admin/users', label: 'Users', icon: '👥' },
   { path: '/admin/roles', label: 'Roles', icon: '🔐' },
   { path: '/admin/permissions', label: 'Permissions', icon: '✓' },
+  { path: '/admin/chatbot/flows', label: 'Chatbot', icon: '🤖', requiresBot: true },
 ]
+
+const adminNavItems = computed(() => {
+  return adminNavItemsBase.filter((item) => {
+    if (item.requiresBot) return hasBotPermission.value
+    return true
+  })
+})
 
 const isActive = (path) => {
   if (path === '/') return route.path === '/'

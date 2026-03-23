@@ -49,7 +49,7 @@
                 : 'bg-white text-angaza-dark shadow-sm border border-slate-200',
             ]"
           >
-            <p class="whitespace-pre-wrap break-words">{{ msg.body }}</p>
+            <p class="whitespace-pre-wrap break-words">{{ msg.display_body ?? msg.body }}</p>
             <p
               :class="[
                 'mt-1 text-xs',

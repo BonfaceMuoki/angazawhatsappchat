@@ -8,6 +8,8 @@ import {
   authLogout as apiLogout,
 } from '../api'
 
+const BOT_PERMISSIONS = ['bot.manage', 'bot.flows', 'bot.nodes', 'bot.edges', 'bot.settings']
+
 function safeToken() {
   try {
     return getStoredToken()
@@ -27,6 +29,17 @@ const user = ref(safeUser())
 
 export function useAuth() {
   const isLoggedIn = computed(() => !!token.value)
+
+  const permissions = computed(() => {
+    const u = user.value
+    if (!u || !Array.isArray(u.permissions)) return []
+    return u.permissions
+  })
+
+  const hasBotPermission = computed(() => {
+    const perms = permissions.value
+    return BOT_PERMISSIONS.some((p) => perms.includes(p))
+  })
 
   function setAuth(newToken, newUser) {
     token.value = newToken || ''
@@ -62,6 +75,8 @@ export function useAuth() {
     token,
     user,
     isLoggedIn,
+    permissions,
+    hasBotPermission,
     login,
     verifyOtp,
     logout,

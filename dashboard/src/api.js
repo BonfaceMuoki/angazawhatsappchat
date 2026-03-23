@@ -2,6 +2,20 @@ const API_BASE_KEY = 'angaza_api_base_url'
 const AUTH_TOKEN_KEY = 'angaza_auth_token'
 const AUTH_USER_KEY = 'angaza_auth_user'
 
+function normalizeBaseUrl(value) {
+  if (!value || typeof value !== 'string') return ''
+  return value.trim().replace(/\/$/, '')
+}
+
+function getRuntimeApiBaseUrl() {
+  if (typeof window === 'undefined') return ''
+  return normalizeBaseUrl(window.__APP_CONFIG__?.API_BASE_URL || '')
+}
+
+function getViteApiBaseUrl() {
+  return normalizeBaseUrl(import.meta.env?.VITE_API_BASE_URL || '')
+}
+
 /** Default when running in Docker: dashboard on 5174, Laravel on 8000 (same host). */
 function getDefaultApiBaseUrl() {
   if (typeof window === 'undefined') return ''
@@ -14,7 +28,13 @@ function getDefaultApiBaseUrl() {
 }
 
 export function getApiBaseUrl() {
-  return localStorage.getItem(API_BASE_KEY) || getDefaultApiBaseUrl()
+  // Precedence: Vite env -> runtime config -> local override -> default fallback.
+  return (
+    getViteApiBaseUrl() ||
+    getRuntimeApiBaseUrl() ||
+    normalizeBaseUrl(localStorage.getItem(API_BASE_KEY) || '') ||
+    getDefaultApiBaseUrl()
+  )
 }
 
 export function setApiBaseUrl(url) {

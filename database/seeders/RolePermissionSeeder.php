@@ -16,6 +16,7 @@ class RolePermissionSeeder extends Seeder
             ['permission_name' => 'users.block', 'description' => 'Block users', 'is_admin_permission' => true],
             ['permission_name' => 'roles.assign', 'description' => 'Assign roles', 'is_admin_permission' => true],
             ['permission_name' => 'permissions.assign', 'description' => 'Assign permissions', 'is_admin_permission' => true],
+            ['permission_name' => 'messages.reply', 'description' => 'Reply to conversations', 'is_admin_permission' => true],
             // Chatbot management
             ['permission_name' => 'bot.manage', 'description' => 'Manage chatbot (flows, nodes, edges, settings)', 'is_admin_permission' => true],
             ['permission_name' => 'bot.flows', 'description' => 'Manage chatbot flows', 'is_admin_permission' => true],

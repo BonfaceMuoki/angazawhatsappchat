@@ -26,7 +26,8 @@ Route::get('/analytics/overview', [AnalyticsController::class, 'overview']);
 Route::get('/conversations', [ConversationController::class, 'index']);
 Route::post('/conversations/{phone}/read', [ConversationController::class, 'markRead']);
 Route::get('/conversations/{phone}/messages', [ConversationController::class, 'messages']);
-Route::post('/conversations/{phone}/messages', [ConversationController::class, 'sendMessage']);
+Route::post('/conversations/{phone}/messages', [ConversationController::class, 'sendMessage'])
+    ->middleware(['auth:api', 'permission:messages.reply']);
 Route::post('/conversations/{phone}/clear-messages', [ConversationController::class, 'clearMessages']);
 
 Route::get('/push-vapid-public', [PushSubscriptionController::class, 'vapidPublic']);

@@ -86,7 +86,9 @@ class IadlConciergeFlowSeeder extends Seeder
      */
     protected function nodeDefinitions(): array
     {
-        $applyUrl = 'https://iadl.angazacenter.org/apply';
+        $bookSessionUrl = 'https://adl.angazacenter.org/book-info-session/';
+        $brochureUrl = 'https://adl.angazacenter.org/wp-content/uploads/2025/10/IADLAngazaCenterFlyer.pdf';
+        $applyUrl = 'https://adl.angazacenter.org/apply/';
 
         return [
             [
@@ -173,14 +175,19 @@ class IadlConciergeFlowSeeder extends Seeder
             [
                 'key' => 'apply_route',
                 'type' => 'list',
-                'message' => "Application link (save this):\n{$applyUrl}\n\nHow would you like to proceed?",
+                'message' => "Useful links:\n"
+                    ."• Apply: {$applyUrl}\n"
+                    ."• Book Session: {$bookSessionUrl}\n"
+                    ."• Download Brochure: {$brochureUrl}\n\n"
+                    .'How would you like to proceed?',
             ],
             [
                 'key' => 'branch_info',
                 'type' => 'buttons',
                 'message' => "*Info sessions*\n\n"
                     .'We run group info sessions (virtual / open house style) so you can ask questions across programs — not just one course. '
-                    ."We'll share dates by message or link you to the calendar when available.\n\n"
+                    ."Book Session: {$bookSessionUrl}\n"
+                    ."Download Brochure: {$brochureUrl}\n\n"
                     .'Reply in this chat for 1:1 follow-up after you register.',
             ],
             [

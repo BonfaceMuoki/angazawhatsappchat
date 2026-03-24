@@ -116,12 +116,24 @@ class WhatsAppWebhookController extends Controller
             return trim($message['text']['body']);
         }
 
-        if (isset($message['interactive']['button_reply']['id'])) {
-            return (string) $message['interactive']['button_reply']['id'];
+        if (isset($message['interactive']['button_reply'])) {
+            $title = trim((string) ($message['interactive']['button_reply']['title'] ?? ''));
+            if ($title !== '') {
+                return $title;
+            }
+            if (isset($message['interactive']['button_reply']['id'])) {
+                return (string) $message['interactive']['button_reply']['id'];
+            }
         }
 
-        if (isset($message['interactive']['list_reply']['id'])) {
-            return (string) $message['interactive']['list_reply']['id'];
+        if (isset($message['interactive']['list_reply'])) {
+            $title = trim((string) ($message['interactive']['list_reply']['title'] ?? ''));
+            if ($title !== '') {
+                return $title;
+            }
+            if (isset($message['interactive']['list_reply']['id'])) {
+                return (string) $message['interactive']['list_reply']['id'];
+            }
         }
 
         $type = $message['type'] ?? null;

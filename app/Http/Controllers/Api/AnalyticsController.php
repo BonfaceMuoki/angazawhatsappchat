@@ -14,6 +14,17 @@ class AnalyticsController extends Controller
     private const FUNNEL_STAGES = [
         'entry', 'role', 'commitment', 'experience', 'pricing', 'education', 'conversion', 'complete',
     ];
+    private const STAGE_LABELS = [
+        'entry' => 'Entry',
+        'role' => 'Role',
+        'commitment' => 'Commitment',
+        'experience' => 'Experience',
+        'pricing' => 'Pricing',
+        'education' => 'Education',
+        'conversion' => 'Conversion',
+        'complete' => 'Complete',
+        'branch_human' => 'Human Support',
+    ];
 
     /**
      * Funnel counts and recent user responses for analysis.
@@ -50,7 +61,9 @@ class AnalyticsController extends Controller
                 $recentResponses[] = [
                     'phone' => $m->phone,
                     'stage' => $conv->stage,
+                    'stage_label' => $this->humanizeStage((string) $conv->stage),
                     'body' => $m->body,
+                    'response_text' => $this->humanizeResponse($m->body),
                     'created_at' => $m->created_at->toIso8601String(),
                 ];
                 if (count($recentResponses) >= $limit) {
@@ -65,5 +78,33 @@ class AnalyticsController extends Controller
                 'recent_responses' => $recentResponses,
             ],
         ]);
+    }
+
+    private function humanizeStage(string $stage): string
+    {
+        if (isset(self::STAGE_LABELS[$stage])) {
+            return self::STAGE_LABELS[$stage];
+        }
+        return $this->humanizeToken($stage);
+    }
+
+    private function humanizeResponse(?string $value): string
+    {
+        $value = trim((string) ($value ?? ''));
+        if ($value === '') {
+            return '—';
+        }
+        // Keep URLs untouched so they stay readable/clickable.
+        if (preg_match('/^https?:\/\//i', $value)) {
+            return $value;
+        }
+        return $this->humanizeToken($value);
+    }
+
+    private function humanizeToken(string $value): string
+    {
+        $normalized = preg_replace('/[_-]+/', ' ', trim($value));
+        $normalized = preg_replace('/\s+/', ' ', (string) $normalized);
+        return ucwords(strtolower((string) $normalized));
     }
 }

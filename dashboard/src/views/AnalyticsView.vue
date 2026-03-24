@@ -57,10 +57,12 @@
                 </td>
                 <td class="whitespace-nowrap px-4 py-3">
                   <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                    {{ r.stage }}
+                    {{ r.stage_label || r.stage }}
                   </span>
                 </td>
-                <td class="max-w-md truncate px-4 py-3 text-sm text-slate-600" :title="r.body">{{ r.body || '—' }}</td>
+                <td class="max-w-md truncate px-4 py-3 text-sm text-slate-600" :title="r.response_text || r.body">
+                  {{ r.response_text || r.body || '—' }}
+                </td>
                 <td class="whitespace-nowrap px-4 py-3 text-sm text-slate-500">{{ formatDate(r.created_at) }}</td>
               </tr>
             </tbody>

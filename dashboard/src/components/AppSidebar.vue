@@ -4,9 +4,13 @@
     :class="visible ? 'translate-x-0' : '-translate-x-full'"
   >
     <div class="flex h-16 items-center gap-2 border-b border-white/10 px-4">
-      <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-angaza-accent text-white font-semibold">
-        A
-      </div>
+      <img
+        src="/angaza-logo.png"
+        alt="Angaza Center"
+        class="h-9 w-9 shrink-0 object-contain"
+        width="36"
+        height="36"
+      />
       <span class="text-lg font-semibold text-white">Angaza</span>
     </div>
     <nav class="space-y-0.5 p-3">
@@ -41,7 +45,7 @@
         <button
           type="button"
           class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-white/85 hover:bg-white/10 hover:text-white"
-          @click="logout"
+          @click="handleLogout"
         >
           <span class="text-lg opacity-90">🚪</span>
           Log out
@@ -64,7 +68,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 
 defineProps({
@@ -72,6 +76,7 @@ defineProps({
 })
 
 const route = useRoute()
+const router = useRouter()
 const { isLoggedIn, logout, hasBotPermission } = useAuth()
 
 const navItems = [
@@ -99,5 +104,16 @@ const adminNavItems = computed(() => {
 const isActive = (path) => {
   if (path === '/') return route.path === '/'
   return route.path.startsWith(path)
+}
+
+async function handleLogout() {
+  logout()
+  try {
+    await router.replace('/login')
+  } finally {
+    if (window.location.pathname !== '/login') {
+      window.location.assign('/login')
+    }
+  }
 }
 </script>

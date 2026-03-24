@@ -7,10 +7,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Angaza Center brand (angazacenter.org) — dark teal + light turquoise
+        // Dashboard palette
         angaza: {
-          dark: '#004d40',    // dark teal (top bar, buttons, primary)
-          accent: '#32afa9',  // light teal/turquoise (logo, links, highlights)
+          // Primary tokens used across existing UI classes
+          dark: '#024E5D',     // TEAL BLUE
+          accent: '#21AEBE',   // JAVA
+
+          // Extended palette tokens
+          paleSky: '#6C7C86',  // PALE SKY
+          geyser: '#D3DFE1',   // GEYSER
+          blue: '#3480DC',     // requested blue accent
         },
       },
     },

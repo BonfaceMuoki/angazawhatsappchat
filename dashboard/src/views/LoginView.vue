@@ -1,30 +1,41 @@
 <template>
-  <div class="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-slate-200 p-4">
-    <div class="w-full max-w-md rounded-xl border border-slate-300 bg-white p-8 shadow-xl">
+  <div class="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-angaza-geyser p-4">
+    <div class="w-full max-w-md rounded-xl border border-angaza-geyser bg-white p-8 shadow-xl">
       <div class="mb-6 flex items-center gap-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-angaza-dark text-white font-bold">A</div>
+        <div
+          class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-angaza-dark p-1.5 shadow-sm ring-1 ring-angaza-dark/20"
+          aria-hidden="true"
+        >
+          <img
+            src="/angaza-logo.png"
+            alt=""
+            class="h-full w-full object-contain"
+            width="40"
+            height="40"
+          />
+        </div>
         <h1 class="text-xl font-semibold text-angaza-dark">Angaza Admin</h1>
       </div>
 
       <!-- Step 1: Email + Password -->
       <form v-if="step === 1" class="space-y-4" @submit.prevent="submitLogin">
         <div>
-          <label class="block text-sm font-medium text-slate-700">Email</label>
+          <label class="block text-sm font-medium text-angaza-paleSky">Email</label>
           <input
             v-model="email"
             type="email"
             required
-            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-angaza-accent focus:outline-none focus:ring-1 focus:ring-angaza-accent"
+            class="mt-1 w-full rounded-lg border border-angaza-geyser bg-angaza-geyser/50 px-3 py-2 text-angaza-dark placeholder:text-angaza-paleSky/70 focus:border-angaza-accent focus:outline-none focus:ring-1 focus:ring-angaza-accent"
             placeholder="admin@example.com"
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-700">Password</label>
+          <label class="block text-sm font-medium text-angaza-paleSky">Password</label>
           <input
             v-model="password"
             type="password"
             required
-            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-angaza-accent focus:outline-none focus:ring-1 focus:ring-angaza-accent"
+            class="mt-1 w-full rounded-lg border border-angaza-geyser bg-angaza-geyser/50 px-3 py-2 text-angaza-dark focus:border-angaza-accent focus:outline-none focus:ring-1 focus:ring-angaza-accent"
           />
         </div>
         <p v-if="loginError" class="text-sm text-red-600">{{ loginError }}</p>
@@ -39,18 +50,18 @@
 
       <!-- Step 2: OTP -->
       <form v-else class="space-y-4" @submit.prevent="submitOtp">
-        <p class="text-sm text-slate-600">
-          We sent a 6-digit code to <strong>{{ email }}</strong>. Enter it below.
+        <p class="text-sm text-angaza-paleSky">
+          We sent a 6-digit code to <strong class="text-angaza-dark">{{ email }}</strong>. Enter it below.
         </p>
         <div>
-          <label class="block text-sm font-medium text-slate-700">Verification code</label>
+          <label class="block text-sm font-medium text-angaza-paleSky">Verification code</label>
           <input
             v-model="otpCode"
             type="text"
             inputmode="numeric"
             maxlength="6"
             required
-            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-center text-lg tracking-widest focus:border-angaza-accent focus:outline-none focus:ring-1 focus:ring-angaza-accent"
+            class="mt-1 w-full rounded-lg border border-angaza-geyser bg-angaza-geyser/50 px-3 py-2 text-center text-lg tracking-widest text-angaza-dark placeholder:text-angaza-paleSky/70 focus:border-angaza-accent focus:outline-none focus:ring-1 focus:ring-angaza-accent"
             placeholder="123456"
           />
         </div>
@@ -64,7 +75,7 @@
         </button>
         <button
           type="button"
-          class="w-full text-sm text-slate-500 hover:text-angaza-dark"
+          class="w-full text-sm text-angaza-paleSky hover:text-angaza-dark"
           @click="step = 1; otpError = ''"
         >
           ← Use a different email

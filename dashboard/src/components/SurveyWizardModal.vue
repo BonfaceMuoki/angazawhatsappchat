@@ -28,7 +28,7 @@
 
       <form class="p-6 space-y-6" @submit.prevent="wizardStep === 1 ? nextStep() : createSurvey()">
         <!-- Step 1: Flow details -->
-        <div v-show="wizardStep === 1" class="space-y-4">
+        <div v-if="wizardStep === 1" class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-slate-700">Survey / Flow name</label>
             <input v-model="flowName" type="text" required class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="e.g. Admissions, Feedback" />
@@ -43,7 +43,7 @@
         </div>
 
         <!-- Step 2: Survey steps -->
-        <div v-show="wizardStep === 2" class="space-y-6">
+        <div v-else class="space-y-6">
           <p class="text-sm text-slate-600">Add each question or message as a step. For buttons/list, add options and choose where each option leads (next step or end).</p>
 
           <div v-for="(step, index) in steps" :key="step.id" class="rounded-lg border border-slate-200 bg-slate-50/50 p-4 space-y-3">

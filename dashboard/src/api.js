@@ -30,10 +30,11 @@ function getDefaultApiBaseUrl() {
 export function getApiBaseUrl() {
   // Precedence: Vite env -> runtime config -> local override -> default fallback.
   return (
-    getViteApiBaseUrl() ||
-    getRuntimeApiBaseUrl() ||
-    normalizeBaseUrl(localStorage.getItem(API_BASE_KEY) || '') ||
-    getDefaultApiBaseUrl()
+    "https://support.angazacenter.org/api/"
+    // getViteApiBaseUrl() ||
+    // getRuntimeApiBaseUrl() ||
+    // normalizeBaseUrl(localStorage.getItem(API_BASE_KEY) || '') ||
+    // getDefaultApiBaseUrl()
   )
 }
 
